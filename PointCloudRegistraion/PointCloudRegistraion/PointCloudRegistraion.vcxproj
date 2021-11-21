@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ICPTest.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="OpenCVWrapper.cpp" />
     <ClCompile Include="PointCloudSamplingTester.cpp" />

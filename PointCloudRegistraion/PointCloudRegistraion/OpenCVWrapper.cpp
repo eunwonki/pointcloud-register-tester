@@ -7,6 +7,7 @@
 
 #include <opencv2/core/mat.hpp>
 #include <opencv2/flann.hpp>
+#include <opencv2/surface_matching.hpp>
 
 #include "OpenCVWrapper.h"
 
@@ -102,6 +103,18 @@ namespace OpenCVWrapper
             ++v;
         }
         return cloud;
+    }
+
+    double Icp(const Mat model, const Mat scene, /*inout*/ Matx44dPtr pose
+        , int iterations, float tolerence, float rejectionScale, int numLevels)
+    {
+        ppf_match_3d::ICP icp(iterations, tolerence, rejectionScale, numLevels, 0 /*sampleType*/, 1 /*numMaxCorr*/);
+        vector<ppf_match_3d::Pose3DPtr> poses(1, new ppf_match_3d::Pose3D());
+        auto& pose3d = poses.back();
+        for (int i = 0; i < 16; ++i) pose3d->pose.val[i] = pose[i];
+        icp.registerModelToScene(model, scene, poses);
+        for (int i = 0; i < 16; ++i) pose[i] = (pose3d->pose.val[i]);
+        return pose3d->residual;
     }
 
 #pragma region Pointcloud

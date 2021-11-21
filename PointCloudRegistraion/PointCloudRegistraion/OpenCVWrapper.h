@@ -15,6 +15,8 @@ namespace OpenCVWrapper
         float z;
     };
 
+    typedef double Matx44dPtr[16];
+
     // *주의* swift 에서는 swift에서 MeshObj member 들을 allocate / delocate 해주어야한다.
     struct MeshObj
     {
@@ -35,6 +37,8 @@ namespace OpenCVWrapper
 
     MeshObj* LoadMeshObj(const char* objFilePath);
     Mat* MeshObj2MatPtr(const MeshObj* src);
+    double Icp(const Mat model, const Mat scene, /*inout*/ Matx44dPtr pose
+        , int iterations, float tolerence, float rejectionScale, int numLevels);
 
 #pragma region Pointcloud
     long Vertices(Mat* pointcloud);
