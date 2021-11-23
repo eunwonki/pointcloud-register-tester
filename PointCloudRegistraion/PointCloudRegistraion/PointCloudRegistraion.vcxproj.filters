@@ -27,6 +27,15 @@
     <ClCompile Include="ICPTest.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="PointCloudRegistrationTestUsingPCL.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DataType.h">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Example.h">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OpenCVWrapper.h">

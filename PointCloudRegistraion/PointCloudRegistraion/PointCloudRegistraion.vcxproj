@@ -139,9 +139,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DataType.h" />
+    <ClCompile Include="Example.h" />
     <ClCompile Include="ICPTest.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="OpenCVWrapper.cpp" />
+    <ClCompile Include="PointCloudRegistrationTestUsingPCL.cpp" />
     <ClCompile Include="PointCloudSamplingTester.cpp" />
   </ItemGroup>
   <ItemGroup>
