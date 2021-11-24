@@ -24,6 +24,11 @@ namespace OpenCVWrapper
 #pragma endregion
 
 #pragma region pointcloud sampling
+    Mat* GetSampledPointCloudBySomeFeaturePoint(
+        Mat* pointcloud,
+        vector<Vec3f> featurePoints,
+        float radius);
+
     Mat* GetSampledPointCloud(
         Mat* pointcloud,
         int maxNumNearFeaturePoint, vector<Vec3f> featurePoints,
@@ -35,8 +40,10 @@ namespace OpenCVWrapper
         int duplicateCount
     );
 
-    set<int> GetKNearestPoint(Mat* pointcloud,
+    set<int> GetKNearestPoints(Mat* pointcloud,
         vector<Vec3f> featurePoints, int numResult, int dimension);
+    set<int> GetPointsInRange(Mat* pointcloud,
+        vector<Vec3f> featurePoints, float radius, int dimension);
     set<int> GetSamplingIndices(set<int> nearestIndices, int numInput, int outerSkipSize);
 #pragma endregion
 }

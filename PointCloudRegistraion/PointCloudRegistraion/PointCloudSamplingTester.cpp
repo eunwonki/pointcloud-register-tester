@@ -2,6 +2,7 @@
 #include <opencv2/surface_matching/ppf_helpers.hpp> // to write ply
 
 #include "OpenCVWrapper.h"
+#include "Example.h"
 
 using namespace std;
 using namespace cv;
@@ -10,12 +11,12 @@ using namespace OpenCVWrapper;
 namespace Tester {
     int PointCloudSamplingTest()
     {
-        static const char* PC_PATH = "model.obj";
+        RegistrationTestData testData = fail1;
 
         const vector<Vec3f> featurePoints = {
             Vec3f(0.113545f, 0.221563f, 0.183073f),
             Vec3f(0.144233f, 0.194138f, 0.211906f),
-            Vec3f(0.072768f,0.191650f,0.210047f),
+            Vec3f(0.072768f,0.191650f, 0.210047f),
         };
 
         const int maxFeaturePoints = 300;
@@ -23,7 +24,9 @@ namespace Tester {
 
         const int duplicateCount = 5;
 
-        MeshObj* pcMesh = LoadMeshObj(PC_PATH);
+        const float searchRange = 0.05f;
+
+        MeshObj* pcMesh = LoadMeshObj(fail1.modelPath.c_str());
         Mat* pc = MeshObj2MatPtr(pcMesh);
         cout << "original mesh vertices: " << Vertices(pc) << endl;
         cout << "num of featuer points: " << featurePoints.size() << endl;
@@ -36,12 +39,19 @@ namespace Tester {
         cv::ppf_match_3d::writePLY(*pc, "result\\original.ply");
         cv::ppf_match_3d::writePLY(*sampledPC, "result\\sampled_skip.ply");
 
-        cout << "duplicate count near feature points: " << duplicateCount << endl;
+        cout << "\nduplicate count near feature points: " << duplicateCount << endl;
         Mat* duplicateSampledPC = GetDuplicateSampledFeaturePoint(pc, maxFeaturePoints, featurePoints, duplicateCount);
         cout << "sampled point vertices (duplicate): " << Vertices(duplicateSampledPC) << endl;
 
         cv::ppf_match_3d::writePLY(*duplicateSampledPC, "result\\sample_duplicate.ply");
 
+        cout << "\nradius range: " << searchRange << endl;
+        Mat* rangeSampledPC = GetSampledPointCloudBySomeFeaturePoint(pc, featurePoints, searchRange);
+        cout << "sampled point vertices (radius range): " << Vertices(rangeSampledPC) << endl;
+
+        cv::ppf_match_3d::writePLY(*rangeSampledPC, "result\\sample_range.ply");
+
+        delete rangeSampledPC;
         delete duplicateSampledPC;
         delete sampledPC;
         delete pcMesh;

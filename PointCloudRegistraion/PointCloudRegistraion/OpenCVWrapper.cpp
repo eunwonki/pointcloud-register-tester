@@ -120,11 +120,31 @@ namespace OpenCVWrapper
 #pragma region Pointcloud
     long Vertices(Mat* pointcloud)
     {
-        return pointcloud -> rows;
+        return pointcloud->rows;
     }
 #pragma endregion
 
 #pragma region sampling pointcloud
+    Mat* GetSampledPointCloudBySomeFeaturePoint(
+        Mat* pointcloud,
+        vector<Vec3f> featurePoints,
+        float radius)
+    {
+        int dimension = 3;
+
+        set<int> pointsInRangeIndices = GetPointsInRange(pointcloud, featurePoints, radius, dimension);
+
+        auto sampledPC = new Mat(0, pointcloud->cols, pointcloud->type());
+
+        for (int idx : pointsInRangeIndices)
+        {
+            Mat elem = pointcloud->row(idx);
+            sampledPC->push_back(elem);
+        }
+
+        return sampledPC;
+    }
+
     Mat* GetSampledPointCloud(
         Mat* pointcloud,
         int maxNumNearFeaturePoint, vector<Vec3f> featurePoints,
@@ -136,7 +156,7 @@ namespace OpenCVWrapper
         int numResult = min(numInput, maxNumNearFeaturePoint);
         int dimension = 3;
 
-        set<int> nearestIndices = GetKNearestPoint(pointcloud, featurePoints, numResult, dimension);
+        set<int> nearestIndices = GetKNearestPoints(pointcloud, featurePoints, numResult, dimension);
         set<int> samplingIndices = GetSamplingIndices(nearestIndices, numInput, outerSkipSize);
 
         auto sampledPC = new Mat(0, pcMat.cols, pcMat.type());
@@ -162,7 +182,7 @@ namespace OpenCVWrapper
         int numResult = min(numInput, maxNumNearFeaturePoint);
         int dimension = 3;
 
-        set<int> nearestIndices = GetKNearestPoint(pointcloud, featurePoints, numResult, dimension);
+        set<int> nearestIndices = GetKNearestPoints(pointcloud, featurePoints, numResult, dimension);
 
         Mat* sampledPC = new Mat(pcMat);
 
@@ -201,12 +221,12 @@ namespace OpenCVWrapper
         return samplingIndices;
     }
 
-    set<int> GetKNearestPoint(Mat* pointcloud,
+    set<int> GetKNearestPoints(Mat* pointcloud,
         vector<Vec3f> featurePoints, int numResult, int dimension)
     {
         int numQuery = featurePoints.size();
 
-        Mat temp = pointcloud -> clone().colRange(0, dimension); // remove normal data
+        Mat temp = pointcloud->clone().colRange(0, dimension); // remove normal data
         cv::flann::Index kdTree(temp, cv::flann::KDTreeIndexParams(8));
 
         Mat query = Mat(numQuery, dimension, temp.type(), featurePoints.data());
@@ -231,5 +251,40 @@ namespace OpenCVWrapper
 
         return nearestPointIndices;
     }
-#pragma endregion
+
+    set<int> GetPointsInRange(Mat* pointcloud,
+        vector<Vec3f> featurePoints, float radius, int dimension)
+    {
+        int numQuery = featurePoints.size();
+        int maxResult = 4096; // 성능을 위해 최대로 찾을 수 있는 점의 개수를 4096개로 제한.
+        maxResult = min(pointcloud->rows, maxResult);
+        int maxIndex = Vertices(pointcloud);
+
+        Mat temp = pointcloud->clone().colRange(0, dimension); // remove normal data
+        cv::flann::Index kdTree(temp, cv::flann::KDTreeIndexParams(1));
+
+        set<int> pointsInRange = set<int>();
+        for (int i = 0; i < numQuery; i++) {
+            Mat query = Mat(1, dimension, temp.type(), &featurePoints[i]);
+
+            vector<int> indices;
+            vector<float> dists;
+
+            int numResult = kdTree.radiusSearch(query, indices, dists,
+                radius * radius, // radius search require square of radius
+                maxResult, flann::SearchParams(4096));
+
+            for (int j = 0; j < numResult; j++) {
+                int index = indices[j];
+                pointsInRange.insert(index);
+            }
+
+            query.release();
+        }
+
+        kdTree.release();
+        temp.release();
+
+        return pointsInRange;
+    }
 }

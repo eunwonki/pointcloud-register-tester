@@ -9,7 +9,7 @@ namespace Tester {
 using namespace Tester;
 int main(int argc, char** argv)
 {
-    //return PointCloudSamplingTest();
+    return PointCloudSamplingTest();
     //return ICPAfterPointCloudSamplingTest();
-    return PointCloudRegistrationTestUsingPCL();
+    //return PointCloudRegistrationTestUsingPCL();
 }
