@@ -11,7 +11,7 @@ using namespace OpenCVWrapper;
 namespace Tester {
     int PointCloudSamplingTest()
     {
-        RegistrationTestData testData = fail1;
+        RegistrationTestData testData = fail3;
 
         const vector<Vec3f> featurePoints = {
             Vec3f(0.113545f, 0.221563f, 0.183073f),

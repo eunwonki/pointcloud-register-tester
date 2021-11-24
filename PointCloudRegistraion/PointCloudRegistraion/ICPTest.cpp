@@ -15,28 +15,16 @@ namespace Tester {
         float rejectionScale = 1.5f;
         float tolerence = 0.005f;
         int numLevels = 6;
+        const float samplingRange = 0.05f;
 
-        RegistrationTestData testData = fail1;
+        RegistrationTestData testData = fail2;
 
-        const int maxFeaturePointsInScene = 1000;
-        const int outerSkipSizeInScene = 1000;
-        const vector<Vec3f> featurePointsInScene = {
-            Vec3f(0.21589498f, -0.177592f, -0.2191054f),
-        };
-
-        const int maxFeaturePointsInModel = 3000;
-        const int outerSkipSizeInModel = 1000;
-        const vector<Vec3f> featurePointsInModel = {
-            Vec3f(0.113545f, 0.221563f, 0.183073f),
-            //Vec3f(0.144233f, 0.194138f, 0.211906f),
-            //Vec3f(0.072768f, 0.191650f, 0.210047f),
-        };
-
+        cout << testData.name << endl;
         Mat* model = MeshObj2MatPtr(LoadMeshObj(testData.modelPath.c_str()));
         Mat* scene = MeshObj2MatPtr(LoadMeshObj(testData.scenePath.c_str()));
 
-        Mat* sampledScene = GetSampledPointCloud(scene, maxFeaturePointsInScene, featurePointsInScene, outerSkipSizeInScene);
-        Mat* sampledModel = GetSampledPointCloud(model, maxFeaturePointsInModel, featurePointsInModel, outerSkipSizeInModel);
+        Mat* sampledScene = GetSampledPointCloudBySomeFeaturePoint(scene, testData.featurePointsInScene, samplingRange);
+        Mat* sampledModel = GetSampledPointCloudBySomeFeaturePoint(model, testData.featurePointsInModel, samplingRange);
 
         writePLY(*reinterpret_cast<Mat*>(scene), "result\\original_scene.ply");
         writePLY(*reinterpret_cast<Mat*>(sampledScene), "result\\sampled_scene.ply");
