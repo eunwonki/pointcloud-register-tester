@@ -1,4 +1,10 @@
+#pragma once
+
+#ifndef OPENCVWRAPPER_H
+#define OPENCVWRAPPER_H
+
 #include <opencv2/core/mat.hpp>
+#include <opencv2/surface_matching.hpp>
 #include <vector>
 #include <set>
 #include "DataType.h"
@@ -10,7 +16,7 @@ namespace OpenCVWrapper
 {
     MeshObj* LoadMeshObj(const char* objFilePath);
     Mat* MeshObj2MatPtr(const MeshObj* src);
-    double Icp(const Mat model, const Mat scene, /*inout*/ Matx44dPtr pose
+    ppf_match_3d::Pose3DPtr Icp(const Mat model, const Mat scene, /*inout*/ Matx44dPtr pose
         , int iterations, float tolerence, float rejectionScale, int numLevels);
 
 #pragma region Pointcloud
@@ -34,3 +40,5 @@ namespace OpenCVWrapper
     set<int> GetSamplingIndices(set<int> nearestIndices, int numInput, int outerSkipSize);
 #pragma endregion
 }
+
+#endif

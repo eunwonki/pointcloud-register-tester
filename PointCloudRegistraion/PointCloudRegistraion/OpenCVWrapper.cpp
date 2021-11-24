@@ -105,7 +105,7 @@ namespace OpenCVWrapper
         return cloud;
     }
 
-    double Icp(const Mat model, const Mat scene, /*inout*/ Matx44dPtr pose
+    ppf_match_3d::Pose3DPtr Icp(const Mat model, const Mat scene, /*inout*/ Matx44dPtr pose
         , int iterations, float tolerence, float rejectionScale, int numLevels)
     {
         ppf_match_3d::ICP icp(iterations, tolerence, rejectionScale, numLevels, 0 /*sampleType*/, 1 /*numMaxCorr*/);
@@ -114,7 +114,7 @@ namespace OpenCVWrapper
         for (int i = 0; i < 16; ++i) pose3d->pose.val[i] = pose[i];
         icp.registerModelToScene(model, scene, poses);
         for (int i = 0; i < 16; ++i) pose[i] = (pose3d->pose.val[i]);
-        return pose3d->residual;
+        return pose3d;
     }
 
 #pragma region Pointcloud

@@ -41,9 +41,9 @@ namespace Tester {
 
     int PointCloudRegistrationTestUsingPCL()
     {
-        RegistrationTestData testData = fail1;
+        RegistrationTestData testData = sample;
 
-        int iterations = 200;
+        int iterations = 100;
         double transformationEpsilon = 1e-8;
         double maxCorrespondenceDistance = 1.0;
 
@@ -66,15 +66,17 @@ namespace Tester {
         transformPointCloud(*cloud_model, *cloud_in, in_matrix);
 
         io::savePLYFile("result\\scene.ply", *cloud_scene);
+        io::savePLYFile("result\\model.ply", *cloud_model);
+
         io::savePLYFile("result\\icp_in.ply", *cloud_in);
         
         GeneralizedIterativeClosestPoint<PointXYZ, PointXYZ> icp;
         icp.setMaximumIterations(iterations);
         icp.setTransformationEpsilon(transformationEpsilon);
         icp.setMaxCorrespondenceDistance(maxCorrespondenceDistance);
-        icp.setInputSource(cloud_model);
+        icp.setInputSource(cloud_in);
         icp.setInputTarget(cloud_scene);
-        icp.align(*cloud_model, in_matrix.matrix());
+        icp.align(*cloud_in);
         cout << "Applied " << iterations << " ICP iteration(s) in " << time.toc() << " ms" << endl;
 
         if (icp.hasConverged())
@@ -86,6 +88,8 @@ namespace Tester {
             cout << "euclidean fitness epsilon: " << efe << endl;
             cout << "score: " << score << endl;
             print4x4Matrix(matrix);
+
+            io::savePLYFile("result\\icp_out.ply", *cloud_in);
         }
         else
         {

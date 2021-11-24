@@ -1,8 +1,11 @@
 #include <iostream>
 #include "OpenCVWrapper.h"
+#include "Example.h"
+#include <opencv2/surface_matching/ppf_helpers.hpp>
 
 using namespace OpenCVWrapper;
 using namespace std;
+using namespace cv::ppf_match_3d;
 
 namespace Tester {
     int ICPAfterPointCloudSamplingTest()
@@ -13,59 +16,52 @@ namespace Tester {
         float tolerence = 0.005f;
         int numLevels = 6;
 
-        const int maxFeaturePointsInScene = 300;
-        const int outerSkipSizeInScene = 10;
+        RegistrationTestData testData = fail1;
+
+        const int maxFeaturePointsInScene = 1000;
+        const int outerSkipSizeInScene = 1000;
         const vector<Vec3f> featurePointsInScene = {
             Vec3f(0.21589498f, -0.177592f, -0.2191054f),
         };
 
-        const int maxFeaturePointsInModel = 500;
-        const int outerSkipSizeInModel = 10;
+        const int maxFeaturePointsInModel = 3000;
+        const int outerSkipSizeInModel = 1000;
         const vector<Vec3f> featurePointsInModel = {
             Vec3f(0.113545f, 0.221563f, 0.183073f),
             //Vec3f(0.144233f, 0.194138f, 0.211906f),
             //Vec3f(0.072768f, 0.191650f, 0.210047f),
         };
 
-        static const char* MODEL_PATH = "model.obj";
-        static const char* SCENE_PATH = "scene.obj";
-
-        Matx44dPtr pose = {
-            -0.21549509465694427, 
-            -0.51570183038711548,
-            0.82922476530075073,
-            0.20281513035297394,
-            -0.0032726526260375977,
-            0.84955275058746338,
-            0.52749329805374146,
-            -0.46202057600021362,
-            -0.97649949789047241,
-            0.11095847189426422,
-            -0.18476219475269318,
-            -0.09898819774389267,
-            0,
-            0,
-            0,
-            1
-        };
-
-        Mat* model = MeshObj2MatPtr(LoadMeshObj(MODEL_PATH));
-        Mat* scene = MeshObj2MatPtr(LoadMeshObj(SCENE_PATH));
+        Mat* model = MeshObj2MatPtr(LoadMeshObj(testData.modelPath.c_str()));
+        Mat* scene = MeshObj2MatPtr(LoadMeshObj(testData.scenePath.c_str()));
 
         Mat* sampledScene = GetSampledPointCloud(scene, maxFeaturePointsInScene, featurePointsInScene, outerSkipSizeInScene);
         Mat* sampledModel = GetSampledPointCloud(model, maxFeaturePointsInModel, featurePointsInModel, outerSkipSizeInModel);
 
+        writePLY(*reinterpret_cast<Mat*>(scene), "result\\original_scene.ply");
+        writePLY(*reinterpret_cast<Mat*>(sampledScene), "result\\sampled_scene.ply");
+        writePLY(*reinterpret_cast<Mat*>(model), "result\\original_model.ply");
+        writePLY(*reinterpret_cast<Mat*>(sampledModel), "result\\sampled_model.ply");
+
+        auto pose = testData.initial;
+        auto initialpose = Matx44d(pose);
         cout << "initial pose = " << endl;
         for (int i = 0; i < 16; i++)
             cout << pose[i] << endl;
 
-        double residual = Icp(*sampledModel, *sampledScene, pose, iterations, tolerence, rejectionScale, numLevels);
+        Mat icp_in = transformPCPose(*model, initialpose);
+        writePLY(icp_in, "result\\icp_in.ply");
 
-        cout << "residual = " << residual << endl;
+        auto result = Icp(*sampledModel, *sampledScene, pose, iterations, tolerence, rejectionScale, numLevels);
+
+        cout << "residual = " << result -> residual << endl;
 
         cout << "result pose = " << endl;
         for (int i = 0; i < 16; i++)
             cout << pose[i] << endl;
+
+        Mat icp_out = transformPCPose(*model, result -> pose);
+        writePLY(icp_out, "result\\icp_out.ply");
 
         return 0;
     }
