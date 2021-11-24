@@ -5,6 +5,8 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
+#include <opencv2/core/matx.hpp>
 
 struct Vector3
 {
@@ -37,6 +39,9 @@ struct RegistrationTestData
     std::string scenePath = "";
 
     double* initial = new double[16];
+
+    std::vector<cv::Vec3f> featurePointsInScene;
+    std::vector<cv::Vec3f> featurePointsInModel;
 };
 
 #endif
