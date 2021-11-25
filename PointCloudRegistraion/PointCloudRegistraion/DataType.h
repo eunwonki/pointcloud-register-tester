@@ -30,7 +30,14 @@ struct MeshObj
 
 typedef double Matx44dPtr[16];
 
-struct RegistrationTestData 
+struct FeaturePoint
+{
+    float radiusRange;
+    cv::Vec3f pointInModel;
+    cv::Vec3f pointInScene;
+};
+
+struct RegistrationTestData
 {
     std::string name = "";
     std::string tag = "";
@@ -40,8 +47,7 @@ struct RegistrationTestData
 
     double* initial = new double[16];
 
-    std::vector<cv::Vec3f> featurePointsInScene;
-    std::vector<cv::Vec3f> featurePointsInModel;
+    std::vector<FeaturePoint> featurePoints;
 };
 
 #endif

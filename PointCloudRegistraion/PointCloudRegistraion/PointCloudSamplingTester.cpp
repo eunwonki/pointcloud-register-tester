@@ -4,6 +4,8 @@
 #include "OpenCVWrapper.h"
 #include "Example.h"
 
+#include <boolinq/boolinq.h>
+
 using namespace std;
 using namespace cv;
 using namespace OpenCVWrapper;
@@ -11,13 +13,7 @@ using namespace OpenCVWrapper;
 namespace Tester {
     int PointCloudSamplingTest()
     {
-        RegistrationTestData testData = fail3;
-
-        const vector<Vec3f> featurePoints = {
-            Vec3f(0.113545f, 0.221563f, 0.183073f),
-            Vec3f(0.144233f, 0.194138f, 0.211906f),
-            Vec3f(0.072768f,0.191650f, 0.210047f),
-        };
+        RegistrationTestData testData = success2;
 
         const int maxFeaturePoints = 300;
         const int outerSkipSize = 10;
@@ -26,7 +22,9 @@ namespace Tester {
 
         const float searchRange = 0.05f;
 
-        MeshObj* pcMesh = LoadMeshObj(fail1.modelPath.c_str());
+        auto featurePoints = boolinq::from(testData.featurePoints).select([](const FeaturePoint& point) { return point.pointInScene; }).toStdVector();
+
+        MeshObj* pcMesh = LoadMeshObj(testData.scenePath.c_str());
         Mat* pc = MeshObj2MatPtr(pcMesh);
         cout << "original mesh vertices: " << Vertices(pc) << endl;
         cout << "num of featuer points: " << featurePoints.size() << endl;
