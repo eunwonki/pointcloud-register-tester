@@ -29,8 +29,13 @@ namespace Tester {
         auto pointsInScene = from(testData.featurePoints).select([](const FeaturePoint& point) { return point.pointInScene; }).toStdVector();
         auto pointsInModel = from(testData.featurePoints).select([](const FeaturePoint& point) { return point.pointInModel; }).toStdVector();
 
+        pcl::console::TicToc time;
+        time.tic();
+
         Mat* sampledScene = GetSampledPointCloudBySomeFeaturePoint(scene, pointsInScene, samplingRange);
         Mat* sampledModel = GetSampledPointCloudBySomeFeaturePoint(model, pointsInModel, samplingRange);
+
+        cout << "sampling time: " << time.toc() << " ms" << endl;
 
         writePLY(*reinterpret_cast<Mat*>(scene), "result\\original_scene.ply");
         writePLY(*reinterpret_cast<Mat*>(sampledScene), "result\\sampled_scene.ply");
@@ -49,7 +54,10 @@ namespace Tester {
         //for (int i = 0; i < 16; i++)
         //    cout << pose[i] << endl;
 
+        time.tic();
         auto result = Icp(*sampledModel, *sampledScene, pose, iterations, tolerence, rejectionScale, numLevels);
+
+        cout << "icp time: " << time.toc() << " ms" << endl;
         cout << "residual = " << result->residual << endl;
         cout << "After Sampling result pose = " << endl;
         for (int i = 0; i < 16; i++)
