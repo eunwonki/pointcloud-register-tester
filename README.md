@@ -8,4 +8,5 @@ Visual Studio 2019
 #### By [VCPKG](https://github.com/microsoft/vcpkg)
 - opencv:x64-windows
 - opencv[contrib]:x64-windows
-- pcl:x64-windows (TODO)
+- pcl:x64-windows
+- boolinq (to use linq)
