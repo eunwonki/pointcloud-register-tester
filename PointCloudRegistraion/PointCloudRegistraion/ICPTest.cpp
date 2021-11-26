@@ -20,7 +20,7 @@ namespace Tester {
         int numLevels = 6;
         const float samplingRange = 0.05f;
 
-        RegistrationTestData testData = fieldtest1;
+        RegistrationTestData testData = fieldtest5;
 
         cout << testData.name << endl;
         Mat* model = MeshObj2MatPtr(LoadMeshObj(testData.modelPath.c_str()));
@@ -50,9 +50,9 @@ namespace Tester {
         Mat icp_in = transformPCPose(*model, initialpose);
         writePLY(icp_in, "result\\icp_in.ply");
 
-        //cout << "initial pose = " << endl;
-        //for (int i = 0; i < 16; i++)
-        //    cout << pose[i] << endl;
+        cout << "initial pose = " << endl;
+        for (int i = 0; i < 16; i++)
+            cout << pose[i] << endl;
 
         time.tic();
         auto result = Icp(*sampledModel, *sampledScene, pose, iterations, tolerence, rejectionScale, numLevels);

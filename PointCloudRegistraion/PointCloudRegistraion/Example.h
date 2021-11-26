@@ -328,7 +328,7 @@ namespace {
     {
         "20211112105152",
         "fieldtest5",
-        "dat\\fieldtest\\20211112105152\\model65.obj",
+        "data\\fieldtest\\20211112105152\\model65.obj",
         "data\\fieldtest\\20211112105152\\scene.obj",
         new double[16]
         {
