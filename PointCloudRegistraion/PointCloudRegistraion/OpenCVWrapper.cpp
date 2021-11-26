@@ -224,7 +224,7 @@ namespace OpenCVWrapper
     set<int> GetKNearestPoints(Mat* pointcloud,
         vector<Vec3f> featurePoints, int numResult, int dimension)
     {
-        int numQuery = featurePoints.size();
+        int numQuery = (int) featurePoints.size();
 
         Mat temp = pointcloud->clone().colRange(0, dimension); // remove normal data
         cv::flann::Index kdTree(temp, cv::flann::KDTreeIndexParams(8));
@@ -255,7 +255,7 @@ namespace OpenCVWrapper
     set<int> GetPointsInRange(Mat* pointcloud,
         vector<Vec3f> featurePoints, float radius, int dimension)
     {
-        int numQuery = featurePoints.size();
+        size_t numQuery = featurePoints.size();
         int maxResult = 4096; // 성능을 위해 최대로 찾을 수 있는 점의 개수를 4096개로 제한.
         maxResult = min(pointcloud->rows, maxResult);
         int maxIndex = Vertices(pointcloud);

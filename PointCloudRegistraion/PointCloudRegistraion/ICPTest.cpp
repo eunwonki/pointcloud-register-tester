@@ -20,7 +20,7 @@ namespace Tester {
         int numLevels = 6;
         const float samplingRange = 0.05f;
 
-        RegistrationTestData testData = success3;
+        RegistrationTestData testData = fieldtest1;
 
         cout << testData.name << endl;
         Mat* model = MeshObj2MatPtr(LoadMeshObj(testData.modelPath.c_str()));
