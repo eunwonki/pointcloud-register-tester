@@ -10,3 +10,8 @@ Visual Studio 2019
 - opencv[contrib]:x64-windows
 - pcl:x64-windows
 - boolinq (to use linq)
+- pcl[core,cuda,opengl,qt,vtk]:x64-windows (to use visualizing of pointcloud)
+
+
+#### CUDA
+https://developer.nvidia.com/cuda-11.1.0-download-archive
