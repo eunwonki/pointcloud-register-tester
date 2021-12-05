@@ -50,6 +50,7 @@ namespace Tester {
     int Open3DTest()
     {
         RegistrationTestData testData = fail1;
+        PrintOpen3DVersion();
 
         // input read meshes and pointclouds
         auto mesh_scene = make_shared<geometry::TriangleMesh>();
@@ -71,16 +72,16 @@ namespace Tester {
         const string method = kMethodCorres;
 
         bool mutual_filter = false;
-        double maxCorrespondenceDistance = 0.075;
+        double maxCorrespondenceDistance = 0.07;
         int ransac_n = 3;
 
         auto correspondence_checker_edge_lenth = pipelines::registration::CorrespondenceCheckerBasedOnEdgeLength(0.9);
         auto correspondence_checker_distance = pipelines::registration::CorrespondenceCheckerBasedOnDistance(0.075);
         auto correspondence_checker_normal = pipelines::registration::CorrespondenceCheckerBasedOnNormal(0.52359878);
-        auto convergence_criteria = pipelines::registration::RANSACConvergenceCriteria(100000, 0.999);
+        auto ransac_convergence_criteria = pipelines::registration::RANSACConvergenceCriteria(100000, 0.999);
         auto estimate_pointtopoint = pipelines::registration::TransformationEstimationPointToPoint(false);
 
-        pipelines::registration::RegistrationResult registration_result;
+        pipelines::registration::RegistrationResult global_registration_result;
 
         vector <reference_wrapper<const pipelines::registration::CorrespondenceChecker>> correspondence_checker;
         correspondence_checker.push_back(correspondence_checker_edge_lenth);
@@ -88,11 +89,11 @@ namespace Tester {
         correspondence_checker.push_back(correspondence_checker_normal);
 
         if (method == kMethodFeatureBased)
-            registration_result = pipelines::registration::RegistrationRANSACBasedOnFeatureMatching(
+            global_registration_result = pipelines::registration::RegistrationRANSACBasedOnFeatureMatching(
                 *pc_model, *pc_scene, *fpfh_scene, *fpfh_scene,
                 mutual_filter, maxCorrespondenceDistance,
-                estimate_pointtopoint, ransac_n, 
-                correspondence_checker, convergence_criteria);
+                estimate_pointtopoint, ransac_n,
+                correspondence_checker, ransac_convergence_criteria);
 
         if (method == kMethodCorres)
         {
@@ -134,35 +135,55 @@ namespace Tester {
                     }
                 }
 
-                registration_result = pipelines::registration::RegistrationRANSACBasedOnCorrespondence(
+                global_registration_result = pipelines::registration::RegistrationRANSACBasedOnCorrespondence(
                     *pc_model, *pc_scene, mutual, maxCorrespondenceDistance,
                     estimate_pointtopoint, ransac_n,
-                    correspondence_checker, convergence_criteria);
+                    correspondence_checker, ransac_convergence_criteria);
             }
             else {
-                registration_result = pipelines::registration::RegistrationRANSACBasedOnCorrespondence(
+                global_registration_result = pipelines::registration::RegistrationRANSACBasedOnCorrespondence(
                     *pc_model, *pc_scene, corres_ji, maxCorrespondenceDistance,
-                    estimate_pointtopoint, ransac_n, 
-                    correspondence_checker ,convergence_criteria);
+                    estimate_pointtopoint, ransac_n,
+                    correspondence_checker, ransac_convergence_criteria);
             }
         }
 
-        shared_ptr<geometry::TriangleMesh> mesh_result = open3d::io::CreateMeshFromFile(testData.modelPath);
-        mesh_result->Transform(registration_result.transformation_);
-        mesh_result->ComputeVertexNormals();
+        shared_ptr<geometry::TriangleMesh> mesh_global_result = open3d::io::CreateMeshFromFile(testData.modelPath);
+        mesh_global_result->Transform(global_registration_result.transformation_);
+        mesh_global_result->ComputeVertexNormals();
+
+        // local registration using g-icp
+        int iterations = 100;
+        auto icp_convergence_criteria = pipelines::registration::ICPConvergenceCriteria(1e-6, 1e-6, iterations);
+
+        auto local_registration_result = pipelines::registration::RegistrationICP(
+            *pc_model, *pc_scene, maxCorrespondenceDistance, global_registration_result.transformation_,
+            pipelines::registration::TransformationEstimationPointToPlane(),
+            icp_convergence_criteria);
+
+        shared_ptr<geometry::TriangleMesh> mesh_local_result = open3d::io::CreateMeshFromFile(testData.modelPath);
+        mesh_local_result->Transform(local_registration_result.transformation_);
+        mesh_local_result->ComputeVertexNormals();
 
         // visualize result meshes and pointclouds
 
         auto color_scene = Eigen::Vector3d(1, 0, 0);
         auto color_model = Eigen::Vector3d(0, 1, 0);
-        auto color_result = Eigen::Vector3d(0, 0, 1);
+        auto color_global_result = Eigen::Vector3d(0, 0, 1);
+        auto color_local_result = Eigen::Vector3d(1, 1, 0);
 
         mesh_scene->PaintUniformColor(color_scene);
         mesh_model->PaintUniformColor(color_model);
-        mesh_result->PaintUniformColor(color_result);
+        mesh_global_result->PaintUniformColor(color_global_result);
+        mesh_local_result->PaintUniformColor(color_local_result);
 
         //visualization::DrawGeometries({ pc_scene, pc_model }, "PointCloud", 1600, 900);
-        visualization::DrawGeometries({ mesh_scene, mesh_model, mesh_result }, "Mesh", 1600, 900);
+        visualization::DrawGeometries({
+            mesh_scene,
+            mesh_model,
+            mesh_global_result,
+            //mesh_local_result,
+            }, "Mesh", 1600, 900);
 
         return 0;
     }
