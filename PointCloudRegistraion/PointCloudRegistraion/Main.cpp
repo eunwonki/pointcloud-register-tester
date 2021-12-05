@@ -12,6 +12,6 @@ int main(int argc, char** argv)
 {
     //return PointCloudSamplingTest();
     //return ICPAfterPointCloudSamplingTest();
-    return PCLTest();
-    //return Open3DTest();
+    //return PCLTest();
+    return Open3DTest();
 }
