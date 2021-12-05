@@ -37,9 +37,9 @@ namespace Tester {
 
     std::tuple<std::shared_ptr<geometry::PointCloud>,
         std::shared_ptr<pipelines::registration::Feature>>
-        PreprocessPointCloud(geometry::TriangleMesh mesh) {
+        PreprocessPointCloud(geometry::TriangleMesh mesh, double downSample) {
         auto pcd = MeshToPointCloud(mesh, true);
-        auto pcd_down = pcd->VoxelDownSample(0.01);
+        auto pcd_down = pcd->VoxelDownSample(downSample);
         pcd_down->EstimateNormals(
             open3d::geometry::KDTreeSearchParamHybrid(0.1, 30));
         auto pcd_fpfh = pipelines::registration::ComputeFPFHFeature(
@@ -52,7 +52,7 @@ namespace Tester {
         RegistrationTestData testData = fail1;
         PrintOpen3DVersion();
 
-        // input read meshes and pointclouds
+        // input read meshes
         auto mesh_scene = make_shared<geometry::TriangleMesh>();
         io::ReadTriangleMesh(testData.scenePath, *mesh_scene);
         mesh_scene->ComputeVertexNormals();
@@ -60,10 +60,17 @@ namespace Tester {
         io::ReadTriangleMesh(testData.modelPath, *mesh_model);
         mesh_model->ComputeVertexNormals();
 
+        // down sampling and build point cloud
+        utility::Timer timer;
+        double down_sample = 0.01;
+
+        timer.Start();
         shared_ptr<geometry::PointCloud> pc_scene, pc_model;
         shared_ptr<pipelines::registration::Feature> fpfh_scene, fpfh_model;
-        tie(pc_scene, fpfh_scene) = PreprocessPointCloud(*mesh_scene);
-        tie(pc_model, fpfh_model) = PreprocessPointCloud(*mesh_model);
+        tie(pc_scene, fpfh_scene) = PreprocessPointCloud(*mesh_scene, down_sample);
+        tie(pc_model, fpfh_model) = PreprocessPointCloud(*mesh_model, down_sample);
+        timer.Stop();
+        cout << "Sampling Time: " << timer.GetDuration() << " ms" << endl;
 
         // global registration
         const string kMethodFeatureBased = "feature_based";
@@ -88,6 +95,7 @@ namespace Tester {
         correspondence_checker.push_back(correspondence_checker_distance);
         correspondence_checker.push_back(correspondence_checker_normal);
 
+        timer.Start();
         if (method == kMethodFeatureBased)
             global_registration_result = pipelines::registration::RegistrationRANSACBasedOnFeatureMatching(
                 *pc_model, *pc_scene, *fpfh_scene, *fpfh_scene,
@@ -147,6 +155,8 @@ namespace Tester {
                     correspondence_checker, ransac_convergence_criteria);
             }
         }
+        timer.Stop();
+        cout << "Global Registration Time: " << timer.GetDuration() << " ms" << endl;
 
         shared_ptr<geometry::TriangleMesh> mesh_global_result = open3d::io::CreateMeshFromFile(testData.modelPath);
         mesh_global_result->Transform(global_registration_result.transformation_);
@@ -156,10 +166,13 @@ namespace Tester {
         int iterations = 100;
         auto icp_convergence_criteria = pipelines::registration::ICPConvergenceCriteria(1e-6, 1e-6, iterations);
 
+        timer.Start();
         auto local_registration_result = pipelines::registration::RegistrationICP(
             *pc_model, *pc_scene, maxCorrespondenceDistance, global_registration_result.transformation_,
             pipelines::registration::TransformationEstimationPointToPlane(),
             icp_convergence_criteria);
+        timer.Stop();
+        cout << "Local Registration Time: " << timer.GetDuration() << " ms" << endl;
 
         shared_ptr<geometry::TriangleMesh> mesh_local_result = open3d::io::CreateMeshFromFile(testData.modelPath);
         mesh_local_result->Transform(local_registration_result.transformation_);
