@@ -11,7 +11,7 @@ using namespace cv::ppf_match_3d;
 using namespace boolinq;
 
 namespace Tester {
-    int ICPAfterPointCloudSamplingTest()
+    int OpenCVTest()
     {
         // Parameters
         int iterations = 100;

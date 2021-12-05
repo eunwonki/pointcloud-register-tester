@@ -141,7 +141,7 @@
   <ItemGroup>
     <ClCompile Include="DataType.h" />
     <ClCompile Include="Example.h" />
-    <ClCompile Include="ICPTest.cpp" />
+    <ClCompile Include="OpenCVTest.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Open3DTest.cpp" />
     <ClCompile Include="OpenCVWrapper.cpp" />

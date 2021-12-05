@@ -2,7 +2,7 @@
 
 namespace Tester {
     int PointCloudSamplingTest();
-    int ICPAfterPointCloudSamplingTest();
+    int OpenCVTest();
     int PCLTest();
     int Open3DTest();
 }
@@ -11,7 +11,7 @@ using namespace Tester;
 int main(int argc, char** argv)
 {
     //return PointCloudSamplingTest();
-    //return ICPAfterPointCloudSamplingTest();
+    return OpenCVTest();
     //return PCLTest();
-    return Open3DTest();
+    //return Open3DTest();
 }
