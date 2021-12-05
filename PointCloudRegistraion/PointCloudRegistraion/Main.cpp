@@ -3,13 +3,15 @@
 namespace Tester {
     int PointCloudSamplingTest();
     int ICPAfterPointCloudSamplingTest();
-    int PointCloudRegistrationTestUsingPCL();
+    int PCLTest();
+    int Open3DTest();
 }
 
 using namespace Tester;
 int main(int argc, char** argv)
 {
     //return PointCloudSamplingTest();
-    return ICPAfterPointCloudSamplingTest();
-    //return PointCloudRegistrationTestUsingPCL();
+    //return ICPAfterPointCloudSamplingTest();
+    return PCLTest();
+    //return Open3DTest();
 }

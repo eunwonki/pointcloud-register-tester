@@ -2,7 +2,7 @@
 
 #include <pcl/point_types.h>
 #include <pcl/registration/icp.h>
-#include <pcl/registration/gicp.h>
+#include <pcl/registration/gicp.h> // PointXYZ에 대해 동작하지 않음...
 #include <pcl/console/time.h>
 #include <pcl/io/obj_io.h>
 #include <pcl/io/ply_io.h>
@@ -39,19 +39,19 @@ namespace Tester {
         return matrix;
     }
 
-    int PointCloudRegistrationTestUsingPCL()
+    int PCLTest()
     {
-        RegistrationTestData testData = sample;
+        RegistrationTestData testData = fail1;
 
         int iterations = 100;
         double transformationEpsilon = 1e-8;
         double maxCorrespondenceDistance = 1.0;
 
-        cout << testData.tag << "test" << endl;
+        cout << testData.tag << " test" << endl;
 
-        PointCloud<PointXYZ>::Ptr cloud_model(new PointCloud<PointXYZ>);
-        PointCloud<PointXYZ>::Ptr cloud_scene(new PointCloud<PointXYZ>);
-        PointCloud<PointXYZ>::Ptr cloud_in(new PointCloud<PointXYZ>);
+        PointCloud<PointNormal>::Ptr cloud_model(new PointCloud<PointNormal>);
+        PointCloud<PointNormal>::Ptr cloud_scene(new PointCloud<PointNormal>);
+        PointCloud<PointNormal>::Ptr cloud_in(new PointCloud<PointNormal>);
 
         console::TicToc time;
         time.tic();
@@ -70,7 +70,7 @@ namespace Tester {
 
         io::savePLYFile("result\\icp_in.ply", *cloud_in);
         
-        GeneralizedIterativeClosestPoint<PointXYZ, PointXYZ> icp;
+        IterativeClosestPoint<PointNormal, PointNormal> icp;
         icp.setMaximumIterations(iterations);
         icp.setTransformationEpsilon(transformationEpsilon);
         icp.setMaxCorrespondenceDistance(maxCorrespondenceDistance);

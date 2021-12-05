@@ -143,8 +143,9 @@
     <ClCompile Include="Example.h" />
     <ClCompile Include="ICPTest.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Open3DTest.cpp" />
     <ClCompile Include="OpenCVWrapper.cpp" />
-    <ClCompile Include="PointCloudRegistrationTestUsingPCL.cpp" />
+    <ClCompile Include="PCLTest.cpp" />
     <ClCompile Include="PointCloudSamplingTester.cpp" />
   </ItemGroup>
   <ItemGroup>
