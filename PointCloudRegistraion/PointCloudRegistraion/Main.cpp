@@ -11,7 +11,7 @@ using namespace Tester;
 int main(int argc, char** argv)
 {
     //return PointCloudSamplingTest();
-    return OpenCVTest();
+    //return OpenCVTest();
     //return PCLTest();
-    //return Open3DTest();
+    return Open3DTest();
 }
