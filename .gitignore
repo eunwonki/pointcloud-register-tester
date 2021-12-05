@@ -350,4 +350,5 @@ MigrationBackup/
 .ionide/
 
 # result directory
-result
+result/
+data/
