@@ -8,6 +8,10 @@
 using namespace std;
 using namespace open3d;
 
+const float voxel_size = 0.005;
+float radius_normal = voxel_size * 2;
+float radius_feature = voxel_size * 5;
+
 namespace Tester {
     shared_ptr<geometry::PointCloud> MeshToPointCloud(geometry::TriangleMesh mesh, bool withNormal) {
         auto pcd = make_shared <geometry::PointCloud>();
@@ -27,48 +31,49 @@ namespace Tester {
         std::shared_ptr<pipelines::registration::Feature>>
         PreprocessPointCloud(const char* file_name) {
         auto pcd = open3d::io::CreatePointCloudFromFile(file_name); // obj file은 지원하지 않음.
-        auto pcd_down = pcd->VoxelDownSample(0.01);
+        auto pcd_down = pcd->VoxelDownSample(voxel_size);
         pcd_down->EstimateNormals(
-            open3d::geometry::KDTreeSearchParamHybrid(0.1, 30));
+            open3d::geometry::KDTreeSearchParamHybrid(radius_normal, 30));
         auto pcd_fpfh = pipelines::registration::ComputeFPFHFeature(
-            *pcd_down, open3d::geometry::KDTreeSearchParamHybrid(0.25, 100));
+            *pcd_down, open3d::geometry::KDTreeSearchParamHybrid(radius_feature, 100));
         return std::make_tuple(pcd_down, pcd_fpfh);
     }
 
     std::tuple<std::shared_ptr<geometry::PointCloud>,
+
         std::shared_ptr<pipelines::registration::Feature>>
-        PreprocessPointCloud(geometry::TriangleMesh mesh, double downSample) {
-        auto pcd = MeshToPointCloud(mesh, true);
-        auto pcd_down = pcd->VoxelDownSample(downSample);
+        PreprocessPointCloud(geometry::TriangleMesh mesh) {
+        auto pcd = MeshToPointCloud(mesh, true );
+        auto pcd_down = pcd->VoxelDownSample(voxel_size);
         pcd_down->EstimateNormals(
-            open3d::geometry::KDTreeSearchParamHybrid(0.1, 30));
+            open3d::geometry::KDTreeSearchParamHybrid(radius_normal, 30));
         auto pcd_fpfh = pipelines::registration::ComputeFPFHFeature(
-            *pcd_down, open3d::geometry::KDTreeSearchParamHybrid(0.25, 100));
+            *pcd_down, open3d::geometry::KDTreeSearchParamHybrid(radius_feature, 100));
         return std::make_tuple(pcd_down, pcd_fpfh);
     }
 
     int Open3DTest()
     {
-        RegistrationTestData testData = fail1;
+        //RegistrationTestData testData = fail1;
         PrintOpen3DVersion();
 
         // input read meshes
         auto mesh_scene = make_shared<geometry::TriangleMesh>();
-        io::ReadTriangleMesh(testData.scenePath, *mesh_scene);
+        io::ReadTriangleMesh("data\\1\\scene.obj", *mesh_scene);
         mesh_scene->ComputeVertexNormals();
         auto mesh_model = make_shared<geometry::TriangleMesh>();
-        io::ReadTriangleMesh(testData.modelPath, *mesh_model);
+        io::ReadTriangleMesh("data\\1\\model.obj", *mesh_model);
         mesh_model->ComputeVertexNormals();
 
         // down sampling and build point cloud
         utility::Timer timer;
-        double down_sample = 0.01;
+        //double down_sample = 0.005; //0.01;
 
         timer.Start();
         shared_ptr<geometry::PointCloud> pc_scene, pc_model;
         shared_ptr<pipelines::registration::Feature> fpfh_scene, fpfh_model;
-        tie(pc_scene, fpfh_scene) = PreprocessPointCloud(*mesh_scene, down_sample);
-        tie(pc_model, fpfh_model) = PreprocessPointCloud(*mesh_model, down_sample);
+        tie(pc_scene, fpfh_scene) = PreprocessPointCloud("data\\1\\target.pcd"); //(*mesh_scene);
+            tie(pc_model, fpfh_model) = PreprocessPointCloud("data\\1\\source.pcd"); //(*mesh_model);
         timer.Stop();
         cout << "Sampling Time: " << timer.GetDuration() << " ms" << endl;
 
@@ -76,15 +81,15 @@ namespace Tester {
         const string kMethodFeatureBased = "feature_based";
         const string kMethodCorres = "corres_based";
 
-        const string method = kMethodCorres;
+        const string method = kMethodFeatureBased;
 
         bool mutual_filter = false;
-        double maxCorrespondenceDistance = 0.07;
+        double maxCorrespondenceDistance = voxel_size * 1.5; //0.07;
         int ransac_n = 3;
 
         auto correspondence_checker_edge_lenth = pipelines::registration::CorrespondenceCheckerBasedOnEdgeLength(0.9);
-        auto correspondence_checker_distance = pipelines::registration::CorrespondenceCheckerBasedOnDistance(0.075);
-        auto correspondence_checker_normal = pipelines::registration::CorrespondenceCheckerBasedOnNormal(0.52359878);
+        auto correspondence_checker_distance = pipelines::registration::CorrespondenceCheckerBasedOnDistance(maxCorrespondenceDistance); //0.075
+        //auto correspondence_checker_normal = pipelines::registration::CorrespondenceCheckerBasedOnNormal(0.52359878);
         auto ransac_convergence_criteria = pipelines::registration::RANSACConvergenceCriteria(100000, 0.999);
         auto estimate_pointtopoint = pipelines::registration::TransformationEstimationPointToPoint(false);
 
@@ -93,7 +98,7 @@ namespace Tester {
         vector <reference_wrapper<const pipelines::registration::CorrespondenceChecker>> correspondence_checker;
         correspondence_checker.push_back(correspondence_checker_edge_lenth);
         correspondence_checker.push_back(correspondence_checker_distance);
-        correspondence_checker.push_back(correspondence_checker_normal);
+        //correspondence_checker.push_back(correspondence_checker_normal);
 
         timer.Start();
         if (method == kMethodFeatureBased)
@@ -158,7 +163,7 @@ namespace Tester {
         timer.Stop();
         cout << "Global Registration Time: " << timer.GetDuration() << " ms" << endl;
 
-        shared_ptr<geometry::TriangleMesh> mesh_global_result = open3d::io::CreateMeshFromFile(testData.modelPath);
+        shared_ptr<geometry::TriangleMesh> mesh_global_result = open3d::io::CreateMeshFromFile("data\\1\\model.obj");
         mesh_global_result->Transform(global_registration_result.transformation_);
         mesh_global_result->ComputeVertexNormals();
 
@@ -174,7 +179,7 @@ namespace Tester {
         timer.Stop();
         cout << "Local Registration Time: " << timer.GetDuration() << " ms" << endl;
 
-        shared_ptr<geometry::TriangleMesh> mesh_local_result = open3d::io::CreateMeshFromFile(testData.modelPath);
+        shared_ptr<geometry::TriangleMesh> mesh_local_result = open3d::io::CreateMeshFromFile("data\\1\\model.obj");
         mesh_local_result->Transform(local_registration_result.transformation_);
         mesh_local_result->ComputeVertexNormals();
 
@@ -195,7 +200,7 @@ namespace Tester {
             mesh_scene,
             mesh_model,
             mesh_global_result,
-            //mesh_local_result,
+            mesh_local_result,
             }, "Mesh", 1600, 900);
 
         return 0;
